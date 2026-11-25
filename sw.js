@@ -1,5 +1,5 @@
-const V='orienrun-admin-v6';
-const SHELL=['nouveautes.js','nouveautes.json','./','index.html','config.js','manifest.webmanifest','css/base.css','css/app.css','js/orun-core.js','js/update.js','js/labels.js','js/app.js','js/tabs2.js','lib/xlsx.full.min.js','lib/jspdf.umd.min.js','lib/qrcode.js','lib/leaflet/leaflet.js','lib/leaflet/leaflet.css','icons/icon-192.png'];
+const V='orienrun-admin-v7';
+const SHELL=['footer.js','nouveautes.js','nouveautes.json','./','index.html','config.js','manifest.webmanifest','css/base.css','css/app.css','js/orun-core.js','js/update.js','js/labels.js','js/app.js','js/tabs2.js','lib/xlsx.full.min.js','lib/jspdf.umd.min.js','lib/qrcode.js','lib/leaflet/leaflet.js','lib/leaflet/leaflet.css','icons/icon-192.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>Promise.all(SHELL.map(u=>fetch(u,{cache:'reload'}).then(r=>r.ok&&c.put(u,r)).catch(()=>{})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x.startsWith('orienrun-admin')).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
