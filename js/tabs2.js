@@ -55,7 +55,7 @@
   /* ====================================================================
      EXPORT / IMPORT
      ==================================================================== */
-  const secretDefault = () => /CHANGEZ/i.test(O.CFG.secret);
+  const secretDefault = () => !O.hasCustomKey();
 
   /* Sauvegarde complète NON chiffrée : feuilles lisibles (Balises, Cartes, Parcours) + feuille JSON complète pour la restauration */
   function buildAdminWorkbook(base) {
@@ -88,8 +88,13 @@
 
   A.addTab('export', '5 · Export / Import', v => {
     const b = A.base;
-    v.innerHTML = '<div class="card"><h3>Base de référence</h3>' +
-      (secretDefault() ? '<div class="warn">⚠ La clé de chiffrement par défaut est encore active (fichier <b>config.js</b>). Remplace-la par une phrase personnelle <b>identique dans l\'appli élève et dans cette appli</b> avant de diffuser les fichiers aux élèves.</div>' : '') +
+    v.innerHTML = '<div class="card"><h3>🔑 Clé de chiffrement (ta phrase secrète)</h3>' +
+      (secretDefault() ? '<div class="warn">⚠ Aucune clé personnelle : la clé par défaut, publique, est utilisée. Choisis ta propre phrase avant de diffuser les fichiers aux élèves.</div>' : '<div class="note" style="margin-bottom:8px">✔ Clé personnelle enregistrée sur cet appareil.</div>') +
+      '<div class="field"><label>Ta phrase (10 caractères minimum)</label><div class="row"><input id="kV" autocomplete="off" spellcheck="false" value="' + esc(O.hasCustomKey() ? O.getKey() : '') + '" placeholder="ex : une phrase longue et personnelle"><button class="btn sm" id="kG" type="button">🎲 Générer</button></div></div>' +
+      '<div class="row nogrow" style="margin-top:8px"><button class="btn sm" id="kS" type="button">Enregistrer la clé</button><button class="btn sm" id="kQ" type="button"' + (O.hasCustomKey() ? '' : ' disabled') + '>📲 QR code pour les élèves</button></div>' +
+      '<div id="kQb" hidden style="text-align:center;margin-top:12px"><canvas id="kQc" width="260" height="260" style="max-width:100%;background:#fff;border-radius:8px"></canvas><div class="note">Les élèves scannent ce QR code dans leur appli OrienRun (« Clé du professeur »), ou tapent la phrase. Ne l\'affiche pas publiquement.</div></div>' +
+      '<div class="note" style="margin-top:8px">Cette phrase chiffre la base et les fichiers de course. Elle reste sur cet appareil ; <b>donne-la à tes élèves</b> (à l\'oral, par l\'ENT ou avec le QR code). Si tu la changes, les fichiers créés avec l\'ancienne clé deviennent illisibles : refais une base élèves et redistribue-la.</div><div class="err" id="kErr"></div></div>' +
+      '<div class="card"><h3>Base de référence</h3>' +
       '<div class="grid2"><div class="field"><label>Nom de la base</label><input id="xN" value="' + esc(b.nom) + '"></div><div class="field"><label>Tolérance GPS (m)</label><input id="xS" inputmode="numeric" value="' + b.seuilGPS + '"></div></div>' +
       '<div class="note" style="margin-bottom:12px">' + b.balises.length + ' balises · ' + b.cartes.length + ' cartes · ' + b.parcours.length + ' parcours. Attention : la précision d\'un GPS de smartphone est souvent de 3 à 15 m ; une tolérance de 5 m peut refuser des balises correctement trouvées.</div>' +
       '<div class="col2 stack">' +
@@ -100,6 +105,19 @@
       '<div class="card" style="border-color:var(--ko);box-shadow:0 8px 32px rgba(255,93,93,.18)"><h3 style="color:var(--ko)">⚠ Zone sensible</h3>' +
       '<p style="font-size:.9rem;margin-bottom:12px">Ce bouton <b>remet l\'application à zéro</b> : toutes les balises, cartes et parcours enregistrés sur cet appareil seront <b>définitivement perdus</b> si tu n\'as pas fait de sauvegarde complète avant.</p>' +
       '<button class="btn block" id="xZ" style="background:#e02929;color:#fff;box-shadow:0 5px 20px rgba(224,41,41,.4)">🗑 Remettre l\'application à zéro</button></div>';
+    $('kG').onclick = () => { $('kV').value = O.genererCle(); };
+    $('kS').onclick = () => {
+      const k = $('kV').value.trim(); $('kErr').textContent = '';
+      if (!O.cleValide(k)) { $('kErr').textContent = '⚠ La phrase doit comporter au moins 10 caractères.'; return; }
+      if (O.hasCustomKey() && O.getKey() !== k && !confirm('Changer la clé ?\n\nLes fichiers déjà créés avec l\'ancienne clé ne seront plus lisibles par les élèves.')) return;
+      O.setKey(k); toast('Clé enregistrée ✔'); A.render();
+    };
+    $('kQ').onclick = () => {
+      const q = qrcode(0, 'M'); q.addData(O.cleVersQr(O.getKey())); q.make(); const n = q.getModuleCount(), c = $('kQc'), x = c.getContext('2d'), m = Math.floor(260 / (n + 8));
+      x.fillStyle = '#fff'; x.fillRect(0, 0, 260, 260); x.fillStyle = '#000'; const o = Math.floor((260 - m * (n + 8)) / 2);
+      for (let r = 0; r < n; r++) for (let cc = 0; cc < n; cc++) if (q.isDark(r, cc)) x.fillRect(o + (cc + 4) * m, o + (r + 4) * m, m, m);
+      $('kQb').hidden = false;
+    };
     const syncMeta = () => { b.nom = $('xN').value.trim() || b.nom; const s = A.num($('xS').value); if (s != null && s > 0) b.seuilGPS = s; A.save(); };
     $('xN').onchange = syncMeta; $('xS').onchange = syncMeta;
     const stamp = () => O.slug(b.nom) + '_' + new Date().toISOString().slice(0, 10);

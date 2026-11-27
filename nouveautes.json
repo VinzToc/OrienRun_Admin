@@ -1,5 +1,13 @@
 [
  {
+  "v": "2.5",
+  "date": "2026-11-27",
+  "items": [
+   "Choisis ta propre phrase secrète de chiffrement (onglet Export / Import) au lieu de la clé par défaut.",
+   "Affichage d'un QR code de la clé à faire scanner aux élèves."
+  ]
+ },
+ {
   "v": "2.4",
   "date": "2026-11-23",
   "items": [
