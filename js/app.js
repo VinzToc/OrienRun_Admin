@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const O = window.ORUN, $ = id => document.getElementById(id);
-  const A = window.A = { VERSION: '2.6', O, $, base: null, runs: [], tabs: [], cur: 'balises', map: null };
+  const A = window.A = { VERSION: '2.7', O, $, base: null, runs: [], tabs: [], cur: 'balises', map: null };
 
   A.esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const esc = A.esc;
